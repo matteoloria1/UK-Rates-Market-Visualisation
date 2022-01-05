@@ -1,0 +1,933 @@
+import eikon as ek
+import pandas as pd
+import numpy as np
+from datetime import datetime
+from datetime import date
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import seaborn as sns
+
+# Access Eikon API
+
+# LINK TO API
+ek.set_app_key('')
+
+# Read in Data
+
+***UK Cash Yield Curve***
+
+uk_2y = ek.get_timeseries('GB2YT=RR')['OPEN']
+uk_3y = ek.get_timeseries('GB3YT=RR')['OPEN']
+uk_5y = ek.get_timeseries('GB5YT=RR')['OPEN']
+uk_7y = ek.get_timeseries('GB7YT=RR')['OPEN']
+uk_10y = ek.get_timeseries('GB10YT=RR')['OPEN']
+uk_20y = ek.get_timeseries('GB20YT=RR')['OPEN']
+uk_30y = ek.get_timeseries('GB30YT=RR')['OPEN']
+uk_50y = ek.get_timeseries('GB50YT=RR')['OPEN']
+
+***UK OIS***
+
+uk_ois_1m = ek.get_timeseries('GBP1MOIS=')['CLOSE']
+uk_ois_2m = ek.get_timeseries('GBP2MOIS=')['CLOSE']
+uk_ois_3m = ek.get_timeseries('GBP3MOIS=')['CLOSE']
+uk_ois_6m = ek.get_timeseries('GBP6MOIS=')['CLOSE']
+uk_ois_9m = ek.get_timeseries('GBP9MOIS=')['CLOSE']
+uk_ois_1y = ek.get_timeseries('GBP1YOIS=')['CLOSE']
+uk_ois_18m = ek.get_timeseries('GBP18MOIS=')['CLOSE']
+uk_ois_2y = ek.get_timeseries('GBP2YOIS=')['CLOSE']
+uk_ois_3y = ek.get_timeseries('GBP3YOIS=')['CLOSE']
+uk_ois_4y = ek.get_timeseries('GBP4YOIS=')['CLOSE']
+uk_ois_5y = ek.get_timeseries('GBP5YOIS=')['CLOSE']
+
+***MPC OIS Fixings("Money" section of RV)***
+
+MPC_1 = ek.get_timeseries('GBPOISCB1X2=R')['CLOSE']
+MPC_2 = ek.get_timeseries('GBPOISCB2X3=R')['CLOSE']
+MPC_3 = ek.get_timeseries('GBPOISCB3X4=R')['CLOSE']
+MPC_4 = ek.get_timeseries('GBPOISCB4X5=R')['CLOSE']
+
+***UK Inflation Swaps + Linkers***
+
+# RPI SWAPS
+
+uk_1y_infswap = ek.get_timeseries('GBRPIZ1Y=')['OPEN']
+uk_2y_infswap = ek.get_timeseries('GBRPIZ2Y=')['OPEN']
+uk_3y_infswap = ek.get_timeseries('GBRPIZ3Y=')['OPEN']
+uk_5y_infswap = ek.get_timeseries('GBRPIZ5Y=')['OPEN']
+uk_7y_infswap = ek.get_timeseries('GBRPIZ7Y=')['OPEN']
+uk_10y_infswap = ek.get_timeseries('GBRPIZ10Y=')['OPEN']
+uk_15y_infswap = ek.get_timeseries('GBRPIZ15Y=')['OPEN']
+uk_20y_infswap = ek.get_timeseries('GBRPIZ20Y=')['OPEN']
+uk_30y_infswap = ek.get_timeseries('GBRPIZ30Y=')['OPEN']
+
+# LINKERS
+
+uk_1y_linker = ek.get_timeseries('GB1YIL=RR')['OPEN']
+uk_5y_linker = ek.get_timeseries('GB5YIL=RR')['OPEN']
+uk_10y_linker = ek.get_timeseries('GB10YIL=RR')['OPEN']
+uk_15y_linker = ek.get_timeseries('GB15YIL=RR')['OPEN']
+uk_20y_linker = ek.get_timeseries('GB20YIL=RR')['OPEN']
+uk_30y_linker = ek.get_timeseries('GB30YIL=RR')['OPEN']
+uk_50y_linker = ek.get_timeseries('GB50YIL=RR')['OPEN']
+
+***UK Forward Inflation Swaps***
+
+uk_1y1y_infswap = ek.get_timeseries('GBIL1YF1Y=R')['OPEN']
+uk_2y2y_infswap = ek.get_timeseries('GBIL2YF2Y=R')['OPEN']
+uk_5y5y_infswap = ek.get_timeseries('GBIL5YF5Y=R')['OPEN']
+
+***UK Inflation Breakevens (can manually calculate by matching cash and linker maturities)***
+
+uk_5y_break = uk_5y - uk_5y_linker
+uk_10y_break = uk_10y - uk_10y_linker
+uk_20y_break = uk_20y - uk_20y_linker
+uk_30y_break = uk_30y - uk_30y_linker
+
+***UK Curve Spreads + Flies***
+
+# CURVE SPREADS
+
+UK_2s5s = ek.get_timeseries('GB2GB5=RR')['CLOSE']
+UK_2s10s = ek.get_timeseries('GB2GB10=RR')['CLOSE']
+UK_2s30s = ek.get_timeseries('GB2GB30=RR')['CLOSE']
+UK_5s10s = ek.get_timeseries('GB5GB10=RR')['CLOSE']
+UK_5s30s = ek.get_timeseries('GB5GB30=RR')['CLOSE']
+UK_10s30s = ek.get_timeseries('GB10GB30=RR')['CLOSE']
+
+# FLIES
+
+UK_2s5s10s = ek.get_timeseries('GB2X5X10=RR')['CLOSE']
+UK_2s5s30s = ek.get_timeseries('GB2X5X30=RR')['CLOSE']
+UK_2s10s30s = ek.get_timeseries('GB2X10X30=RR')['CLOSE']
+UK_5s10s30s = ek.get_timeseries('GB5X10X30=RR')['CLOSE']
+
+***UK IRS***
+
+IRS_2y = ek.get_timeseries('GBPSB6L2Y=TWEB')['CLOSE']
+IRS_3y = ek.get_timeseries('GBPSB6L3Y=TWEB')['CLOSE']
+IRS_4y = ek.get_timeseries('GBPSB6L4Y=TWEB')['CLOSE']
+IRS_5y = ek.get_timeseries('GBPSB6L5Y=TWEB')['CLOSE']
+IRS_10y = ek.get_timeseries('GBPSB6L10Y=TWEB')['CLOSE']
+IRS_20y = ek.get_timeseries('GBPSB6L20Y=TWEB')['CLOSE']
+IRS_30y = ek.get_timeseries('GBPSB6L30Y=TWEB')['CLOSE']
+
+***UK Govvies vs USTs and Bunds***
+
+
+
+
+
+***UK IRS Curve Spreads + Flies***
+
+
+
+
+
+***UK Carry & Rolldown***
+
+
+
+
+
+***UK STIR Futures***
+
+
+
+
+
+***UK Asset Swap Spreads + Swap Spreads (including Linkers)***
+
+
+
+
+
+***Cash vs OIS Spread***
+
+cashOIS_2y = pd.DataFrame((uk_2y - uk_ois_2y)*100, columns=["2y"])
+cashOIS_3y = pd.DataFrame((uk_3y - uk_ois_3y)*100, columns=["3y"])
+cashOIS_5y = pd.DataFrame((uk_5y - uk_ois_5y)*100, columns=["5y"])
+
+***Bunds***
+
+ger_2y = ek.get_timeseries('DE2YT=RR')['OPEN']
+ger_3y = ek.get_timeseries('DE3YT=RR')['OPEN']
+ger_5y = ek.get_timeseries('DE5YT=RR')['OPEN']
+ger_7y = ek.get_timeseries('DE7YT=RR')['OPEN']
+ger_10y = ek.get_timeseries('DE10YT=RR')['OPEN']
+ger_20y = ek.get_timeseries('DE20YT=RR')['OPEN']
+ger_30y = ek.get_timeseries('DE30YT=RR')['OPEN']
+
+***Gilts vs Bunds Spread***
+
+giltbund_2y = pd.DataFrame((uk_2y - ger_2y)*100)
+giltbund_3y = pd.DataFrame((uk_3y - ger_3y)*100)
+giltbund_5y = pd.DataFrame((uk_5y - ger_5y)*100)
+giltbund_7y = pd.DataFrame((uk_7y - ger_7y)*100)
+giltbund_10y = pd.DataFrame((uk_10y - ger_10y)*100)
+giltbund_20y = pd.DataFrame((uk_20y - ger_20y)*100)
+giltbund_30y = pd.DataFrame((uk_30y - ger_30y)*100)
+
+# Clean/Manipulate Data
+
+***Construct Cash Yield Curve***
+
+# CREATE DATAFRAME FOR YIELD CURVE
+UK_yieldcurve = pd.DataFrame([uk_2y, uk_3y, uk_5y, uk_10y, uk_20y, uk_30y, uk_50y]).transpose()
+
+# RENAME COLUMNS
+UK_yieldcurve.columns = ['2y', '3y', '5y', '10y', '20y', '30y', '50y']
+
+UK_yieldcurve = UK_yieldcurve.fillna(method='ffill')
+
+#UK_yieldcurve.tail()
+
+***Get historical Yield Curve***
+
+yieldcurve_today = UK_yieldcurve.tail(1).transpose()
+yieldcurve_1w = UK_yieldcurve.tail(5).head(1).transpose()
+yieldcurve_1m = UK_yieldcurve.tail(20).head(1).transpose()
+yieldcurve_2m = UK_yieldcurve.tail(40).head(1).transpose()
+
+***Construct Linker + Inflation Swap Curves***
+
+# CREATE DATAFRAME FOR INFLATIONS SWAPS CURVE
+UK_ZCIScurve = pd.DataFrame([uk_1y_infswap, uk_2y_infswap, uk_3y_infswap, uk_5y_infswap, uk_7y_infswap, uk_10y_infswap, uk_15y_infswap, uk_20y_infswap, uk_30y_infswap]).transpose()
+
+# RENAME COLUMNS
+UK_ZCIScurve.columns = ['1y', '2y', '3y', '5y', '7y', '10y', '15y', '20y', '30y']
+
+UK_ZCIScurve = UK_ZCIScurve.fillna(method='ffill')
+
+#UK_ZCIScurve.tail()
+
+# CREATE DATAFRAME FOR INFLATION BREAKEVENS CURVE
+UK_linkercurve = pd.DataFrame([uk_1y_linker, uk_5y_linker, uk_10y_linker, uk_15y_linker, uk_20y_linker, uk_30y_linker, uk_50y_linker]).transpose()
+
+# RENAME COLUMNS
+UK_linkercurve.columns = ['1y', '5y', '10y', '15y', '20y', '30y', '50y']
+
+UK_linkercurve = UK_linkercurve.fillna(method='ffill')
+
+#UK_linkercurve.tail()
+
+***Get historical inflation curves***
+
+# HISTORICAL RPI SWAP CURVES
+
+UK_ZCIScurve_today = UK_ZCIScurve.tail(1).transpose()
+UK_ZCIScurve_1w = UK_ZCIScurve.tail(5).head(1).transpose()
+UK_ZCIScurve_1m = UK_ZCIScurve.tail(20).head(1).transpose()
+UK_ZCIScurve_2m = UK_ZCIScurve.tail(40).head(1).transpose()
+
+# HISTORICAL LINKER CURVES
+
+UK_linkercurve_today = UK_linkercurve.tail(1).transpose()
+UK_linkercurve_1w = UK_linkercurve.tail(5).head(1).transpose()
+UK_linkercurve_1m = UK_linkercurve.tail(20).head(1).transpose()
+UK_linkercurve_2m = UK_linkercurve.tail(40).head(1).transpose()
+
+***Construct Forward Inflation Swap Dataframe***
+
+# CREATE DATAFRAME
+UK_forwardinfswapscatter = pd.DataFrame([uk_1y1y_infswap, uk_2y2y_infswap, uk_5y5y_infswap]).transpose()
+
+# RENAME COLUMNS
+UK_forwardinfswapscatter.columns = ['1y1y', '2y2y', '5y5y']
+
+UK_forwardinfswapscatter = UK_forwardinfswapscatter.fillna(method='ffill')
+
+#UK_forwardinfswapscatter.tail()
+
+***Historical Forward Inflation Swaps***
+
+UK_forwardinfswaps_today = UK_forwardinfswapscatter.tail(1).transpose()
+UK_forwardinfswaps_1w = UK_forwardinfswapscatter.tail(5).head(1).transpose()
+UK_forwardinfswaps_1m = UK_forwardinfswapscatter.tail(20).head(1).transpose()
+UK_forwardinfswaps_2m = UK_forwardinfswapscatter.tail(40).head(1).transpose()
+
+***Construct MPC OIS Fixings Dataframe***
+
+# CREATE DATAFRAME
+UK_MPCfixingscurve = pd.DataFrame([MPC_1, MPC_2, MPC_3, MPC_4]).transpose()
+
+# RENAME COLUMNS
+UK_MPCfixingscurve.columns = ['MPC 1', 'MPC 2', 'MPC 3', 'MPC 4']
+
+# REPLACE NANS WITH PREVIOUS VALUE
+UK_MPCfixingscurve = UK_MPCfixingscurve.fillna(method='ffill')
+
+#UK_MPCfixings.tail()
+
+***Historical MPC Fixings***
+
+UK_MPCfixingscurve_today = UK_MPCfixingscurve.tail(1).transpose()
+UK_MPCfixingscurve_1w = UK_MPCfixingscurve.tail(5).head(1).transpose()
+UK_MPCfixingscurve_1m = UK_MPCfixingscurve.tail(20).head(1).transpose()
+UK_MPCfixingscurve_2m = UK_MPCfixingscurve.tail(40).head(1).transpose()
+
+***Construct Breakevens Dataframe***
+
+# CREATE DATAFRAME
+UK_breakscurve = pd.DataFrame([uk_5y_break, uk_10y_break, uk_20y_break, uk_30y_break]).transpose()
+
+# RENAME COLUMNS
+UK_breakscurve.columns = ['5y', '10y', '20y', '30y']
+
+UK_breakscurve = UK_breakscurve.fillna(method='ffill')
+
+#UK_breakscurve.tail()
+
+***Historical Breakevens***
+
+UK_breakscurve_today = UK_breakscurve.tail(1).transpose()
+UK_breakscurve_1w = UK_breakscurve.tail(5).head(1).transpose()
+UK_breakscurve_1m = UK_breakscurve.tail(20).head(1).transpose()
+UK_breakscurve_2m = UK_breakscurve.tail(40).head(1).transpose()
+
+***Construct IRS Dataframe***
+
+# CREATE DATAFRAME
+UK_IRScurve = pd.DataFrame([IRS_2y, IRS_3y, IRS_4y, IRS_5y, IRS_10y, IRS_20y, IRS_30y]).transpose()
+
+# RENAME COLUMNS
+UK_IRScurve.columns = ['2y', '3y', '4y', '5y', '10y', '20y', '30y']
+
+UK_IRScurve = UK_IRScurve.fillna(method='ffill')
+
+#UK_IRScurve.tail()
+
+***Historical IRS***
+
+UK_IRScurve_today = UK_IRScurve.tail(1).transpose()
+UK_IRScurve_1w = UK_IRScurve.tail(5).head(1).transpose()
+UK_IRScurve_1m = UK_IRScurve.tail(20).head(1).transpose()
+UK_IRScurve_2m = UK_IRScurve.tail(40).head(1).transpose()
+
+***Construct OIS Dataframe***
+
+# CREATE DATAFRAME
+UK_OIScurve = pd.DataFrame([uk_ois_1m, uk_ois_2m, uk_ois_3m, uk_ois_6m, uk_ois_9m, uk_ois_1y, uk_ois_18m, uk_ois_2y, uk_ois_3y, uk_ois_4y, uk_ois_5y]).transpose()
+
+# RENAME COLUMNS
+UK_OIScurve.columns = ['1m', '2m', '3m', '6m', '9m', '1y', '18m', '2y', '3y', '4y', '5y']
+
+UK_OIScurve = UK_OIScurve.fillna(method='ffill')
+
+#UK_OIScurve.tail()
+
+***Historical OIS***
+
+UK_OIScurve_today = UK_OIScurve.tail(1).transpose()
+UK_OIScurve_1w = UK_OIScurve.tail(5).head(1).transpose()
+UK_OIScurve_1m = UK_OIScurve.tail(20).head(1).transpose()
+UK_OIScurve_2m = UK_OIScurve.tail(40).head(1).transpose()
+
+***Construct Gilts vs Bunds curve Dataframe***
+
+giltbundcurve = pd.DataFrame([giltbund_2y['OPEN'], giltbund_3y['OPEN'], giltbund_5y['OPEN'], giltbund_7y['OPEN'], giltbund_10y['OPEN'], giltbund_20y['OPEN'], giltbund_30y['OPEN']]).transpose()
+
+# RENAME COLUMNS
+giltbundcurve.columns = ['2y', '3y', '5y', '7y', '10y', '20y', '30y']
+
+giltbundcurve = giltbundcurve.fillna(method='ffill')
+
+#giltbundcurve.tail()
+
+***Historical Gilts vs Bunds***
+
+giltbundcurve_today = giltbundcurve.tail(1).transpose()
+giltbundcurve_1w = giltbundcurve.tail(5).head(1).transpose()
+giltbundcurve_1m = giltbundcurve.tail(20).head(1).transpose()
+giltbundcurve_2m = giltbundcurve.tail(40).head(1).transpose()
+
+# PDF Visualisation
+
+***Set up PDF***
+
+pdf = PdfPages('UK Rates Visualisation')
+firstPage = plt.figure(figsize=(6,4))
+firstPage.clf()
+txt = "UK Market: " + str(date.today())
+firstPage.text(0.5,0.5,txt, transform=firstPage.transFigure, size=24, ha="center")
+pdf.savefig()
+
+***UK Yield Curve***
+
+sns.set()
+
+yieldcurve_vis = pd.concat([yieldcurve_today, yieldcurve_1m, yieldcurve_2m], axis=1)
+yieldcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+yieldcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK Nominal Yield Curve, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+yieldcurve_vis['Change (bps)'] = (yieldcurve_vis.iloc[:,0] - yieldcurve_vis.iloc[:,1]) * 100
+indexNamesArr = yieldcurve_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month Yield Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, yieldcurve_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([yieldcurve_today, yieldcurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month Yield Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***UK RPI Swap Curve***
+
+infswapcurve_vis = pd.concat([UK_ZCIScurve_today, UK_ZCIScurve_1m, UK_ZCIScurve_2m], axis=1)
+infswapcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+infswapcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK Inflation Swap Curve, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+infswapcurve_vis['Change (bps)'] = (infswapcurve_vis.iloc[:,0] - infswapcurve_vis.iloc[:,1]) * 100
+indexNamesArr = infswapcurve_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month RPI Swap Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, infswapcurve_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_ZCIScurve_today, UK_ZCIScurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month RPI Swap Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***Inflation Breakevens Curve***
+
+breakscurve_vis = pd.concat([UK_breakscurve_today, UK_breakscurve_1m, UK_breakscurve_2m], axis=1)
+breakscurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+breakscurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK Inflation Breakevens Curve, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+breakscurve_vis['Change (bps)'] = (breakscurve_vis.iloc[:,0] - breakscurve_vis.iloc[:,1]) * 100
+indexNamesArr = breakscurve_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month RPI Swap Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, breakscurve_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_breakscurve_today, UK_breakscurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month Breakevens Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***UK Linker Curve***
+
+linkercurve_vis = pd.concat([UK_linkercurve_today, UK_linkercurve_1m, UK_linkercurve_2m], axis=1)
+linkercurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+linkercurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK Inflation-linked Bonds Curve, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+linkercurve_vis['Change (bps)'] = (linkercurve_vis.iloc[:,0] - linkercurve_vis.iloc[:,1]) * 100
+indexNamesArr = linkercurve_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month Linker Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, linkercurve_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_linkercurve_today, UK_linkercurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month Linker Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***Forward Inflation Swaps Scatter***
+
+forwardinfswap_vis = pd.concat([UK_forwardinfswaps_today, UK_forwardinfswaps_1m, UK_forwardinfswaps_2m], axis=1)
+forwardinfswap_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+forwardinfswap_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK Forward Inflation Swaps, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+forwardinfswap_vis['Change (bps)'] = (forwardinfswap_vis.iloc[:,0] - forwardinfswap_vis.iloc[:,1]) * 100
+indexNamesArr = forwardinfswap_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month Linker Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, forwardinfswap_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_forwardinfswaps_today, UK_forwardinfswaps_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month Forward Inflation Swaps Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***MPC OIS Fixings***
+
+# MULTIPLE LINE PLOTS
+plt.plot(MPC_1.index, MPC_1,marker='', color='blue', linewidth=2, linestyle='dashed', label="MPC 1")
+plt.plot(MPC_2.index, MPC_2, marker='', color='olive', linewidth=2, linestyle='dashed', label="MPC 2")
+plt.plot(MPC_3.index, MPC_3, marker='', color='red', linewidth=2, linestyle='dashed', label="MPC 3")
+plt.plot(MPC_4.index, MPC_4, marker='', color='orange', linewidth=2, linestyle='dashed', label="MPC 4")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('MPC OIS Fixings')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig()
+plt.show()
+
+# MPC FIXINGS CURVE
+MPCfixings_vis = pd.concat([UK_MPCfixingscurve_today, UK_MPCfixingscurve_1m, UK_MPCfixingscurve_2m], axis=1)
+MPCfixings_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+MPCfixings_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK MPC OIS Fixings, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+MPCfixings_vis['Change (bps)'] = (MPCfixings_vis.iloc[:,0] - MPCfixings_vis.iloc[:,1]) * 100
+indexNamesArr = MPCfixings_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month Linker Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, MPCfixings_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_MPCfixingscurve_today, UK_MPCfixingscurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month Forward Inflation Swaps Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***UK IRS Curve***
+
+IRScurve_vis = pd.concat([UK_IRScurve_today, UK_IRScurve_1m, UK_IRScurve_2m], axis=1)
+IRScurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+IRScurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK Swaps Curve, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+IRScurve_vis['Change (bps)'] = (IRScurve_vis.iloc[:,0] - IRScurve_vis.iloc[:,1]) * 100
+indexNamesArr = IRScurve_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month Linker Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, IRScurve_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_IRScurve_today, UK_IRScurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month Swaps Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***UK Cash Curve + IRS Curve on same chart***
+
+cashvsIRS_vis = pd.concat([UK_IRScurve_today, yieldcurve_today], axis=1)
+cashvsIRS_vis.columns = ['Swaps', 'Cash']
+
+cashvsIRS_vis.plot(style={'Swaps': 'ro-', 'Cash': 'bo-'}
+        ,title='UK Swaps vs Cash Curve, %')
+pdf.savefig()
+
+***OIS Curve***
+
+OIScurve_vis = pd.concat([UK_OIScurve_today, UK_OIScurve_1m, UK_OIScurve_2m], axis=1)
+OIScurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+OIScurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='UK OIS Curve, %')
+pdf.savefig()
+
+# BAR CHART OF ABSOLUTE CHANGES
+
+# 1M CHANGE
+OIScurve_vis['Change (bps)'] = (OIScurve_vis.iloc[:,0] - OIScurve_vis.iloc[:,1]) * 100
+indexNamesArr = OIScurve_vis.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Month Linker Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, OIScurve_vis['Change (bps)'])
+plt.plot()
+
+# 1W CHANGE
+df_week_ago = pd.concat([UK_OIScurve_today, UK_OIScurve_1w], axis=1)
+df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
+indexNamesArr = df_week_ago.index.values
+listOfRowIndexLabels = list(indexNamesArr)
+y_pos = np.arange(len(listOfRowIndexLabels))
+plt.xticks(y_pos, listOfRowIndexLabels)
+plt.xlabel("Maturity")
+plt.ylabel("Change (bps)")
+plt.title("1 Week vs 1 Month OIS Curve Change (bps)")
+plt.xticks(rotation=30)
+plt.bar(y_pos, df_week_ago['Change (bps)'])
+plt.plot()
+pdf.savefig()
+
+***UK Cash Z-score Matrices***
+
+#COMPOSING MATRIX
+tenors = [2,3,5,10,20,30,50]
+
+df_spread = pd.DataFrame() 
+df_spread['Tenors'] = tenors
+for t in tenors: 
+    df_spread[t] = [None]*len(tenors) 
+df_spread = df_spread.set_index(df_spread['Tenors'], inplace=False, drop=True)
+
+#print(df_spread)
+for i in tenors: 
+    for j in tenors: 
+        #print(j, i)
+        sspread = UK_yieldcurve[str(j)+'y'] - UK_yieldcurve[str(i)+'y'] 
+        #print(sspread)
+        #print(sspread.dtype)
+        x = sspread[-1]
+        mean = sspread[-31:-1].mean()#spot fix for rolling data
+        sigma = sspread[-31:-1].std(ddof=1)
+
+        z = (x-mean)/sigma
+        #print(z)
+        #print(x, mean, sigma)
+
+        #appointt to "slot" 
+        try:
+            df_spread[j][i] = round(z,5)
+        except:
+            pass
+
+#j - i and col = j ; rows = i 
+df_spread = df_spread.drop(columns='Tenors')
+df_spread = df_spread.fillna(0)
+#print(df_spread)
+
+plt.figure()
+ax = sns.heatmap(df_spread, cmap='PiYG', annot=True)
+ax.set_xlabel("Tenor (J)")
+ax.set_ylabel("Tenor (I)")
+ax.set_title('UK Cash 1 Month Rolling IsJs Spread Z-Score')
+
+pdf.savefig()
+
+for i in tenors: 
+    for j in tenors: 
+        #print(j, i)
+        sspread = UK_yieldcurve[str(j)+'y'] - UK_yieldcurve[str(i)+'y'] 
+        #print(sspread)
+        #print(sspread.dtype)
+        x = sspread[-1]
+        mean = sspread[-8:-1].mean()#spot fix for rolling data
+        sigma = sspread[-8:-1].std(ddof=1)
+
+        z = (x-mean)/sigma
+        #print(z)
+        #print(x, mean, sigma)
+
+        #appointt to "slot" 
+        try:
+            df_spread[j][i] = round(z,5)
+        except:
+            pass
+
+#j - i and col = j ; rows = i 
+#df_spread = df_spread.drop(columns='Tenors')
+df_spread = df_spread.fillna(0)
+#print(df_spread)
+
+sns.set() 
+plt.figure()
+ax = sns.heatmap(df_spread, cmap='PiYG', annot=True)
+ax.set_xlabel("Tenor (J)")
+ax.set_ylabel("Tenor (I)")
+ax.set_title('UK Cash 7 Days Rolling IsJs Spread Z-Score')
+
+pdf.savefig()
+
+***Swaps Z-score Matrices***
+
+tenors = [2, 3, 4, 5, 10, 20, 30]
+
+df_spread = pd.DataFrame() 
+df_spread['Tenors'] = tenors
+for t in tenors: 
+    df_spread[t] = [None]*len(tenors) 
+df_spread = df_spread.set_index(df_spread['Tenors'], inplace=False, drop=True)
+
+for i in tenors: 
+    for j in tenors: 
+        #print(j, i)
+        sspread = UK_IRScurve[str(j)+'y'] - UK_IRScurve[str(i)+'y'] 
+        #print(sspread)
+        #print(sspread.dtype)
+        x = sspread[-1]
+        mean = sspread[-31:-1].mean()#spot fix for rolling data
+        sigma = sspread[-31:-1].std(ddof=1)
+
+        z = (x-mean)/sigma
+        #print(z)
+        #print(x, mean, sigma)
+
+        #appointt to "slot" 
+        try:
+            df_spread[j][i] = round(z,5)
+        except:
+            pass
+
+#j - i and col = j ; rows = i 
+df_spread = df_spread.drop(columns='Tenors')
+df_spread = df_spread.fillna(0)
+#print(df_spread)
+
+plt.figure()
+ax = sns.heatmap(df_spread, cmap='PiYG', annot=True)
+ax.set_xlabel("Tenor (J)")
+ax.set_ylabel("Tenor (I)")
+ax.set_title('UK IRS 1 Month Rolling IsJs Spread Z-Score')
+
+pdf.savefig()
+
+for i in tenors: 
+    for j in tenors: 
+        #print(j, i)
+        sspread = UK_IRScurve[str(j)+'y'] - UK_IRScurve[str(i)+'y'] 
+        #print(sspread)
+        #print(sspread.dtype)
+        x = sspread[-1]
+        mean = sspread[-8:-1].mean()#spot fix for rolling data
+        sigma = sspread[-8:-1].std(ddof=1)
+
+        z = (x-mean)/sigma
+        #print(z)
+        #print(x, mean, sigma)
+
+        #appointt to "slot" 
+        try:
+            df_spread[j][i] = round(z,5)
+        except:
+            pass
+
+#j - i and col = j ; rows = i 
+#df_spread = df_spread.drop(columns='Tenors')
+df_spread = df_spread.fillna(0)
+#print(df_spread)
+
+sns.set() 
+plt.figure()
+ax = sns.heatmap(df_spread, cmap='PiYG', annot=True)
+ax.set_xlabel("Tenor (J)")
+ax.set_ylabel("Tenor (I)")
+ax.set_title('UK IRS 7 Days Rolling IsJs Spread Z-Score')
+
+pdf.savefig()
+
+***Cash Curve Spreads***
+
+# MULTIPLE LINE PLOTS
+plt.plot(UK_2s5s.index, UK_2s5s,marker='', color='blue', linewidth=2, label="2s5s")
+plt.plot(UK_2s10s.index, UK_2s10s, marker='', color='olive', linewidth=2, label="2s10s")
+plt.plot(UK_2s30s.index, UK_2s30s, marker='', color='red', linewidth=2, label="2s30s")
+plt.plot(UK_5s10s.index, UK_5s10s, marker='', color='orange', linewidth=2, label="5s10s")
+plt.plot(UK_5s30s.index, UK_5s30s, marker='', color='yellow', linewidth=2, label="5s30s")
+plt.plot(UK_10s30s.index, UK_10s30s, marker='', color='black', linewidth=2, label="10s30s")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('UK Cash Curve Spreads, bps')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig()
+plt.show()
+
+***Cash Flies***
+
+# MULTIPLE LINE PLOTS
+plt.plot(UK_2s5s10s.index, UK_2s5s10s,marker='', color='blue', linewidth=2, label="2s5s10s")
+plt.plot(UK_2s5s30s.index, UK_2s5s30s, marker='', color='olive', linewidth=2, label="2s5s30s")
+plt.plot(UK_2s10s30s.index, UK_2s10s30s, marker='', color='red', linewidth=2, label="2s10s30s")
+plt.plot(UK_5s10s30s.index, UK_5s10s30s, marker='', color='orange', linewidth=2, label="5s10s30s")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('UK Cash Curve Flies, bps')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig()
+plt.show()
+
+***Cash vs OIS***
+
+# MULTIPLE LINE PLOTS
+plt.plot(cashOIS_2y.index, cashOIS_2y,marker='', color='blue', linewidth=2, label="2y")
+plt.plot(cashOIS_3y.index, cashOIS_3y, marker='', color='olive', linewidth=2, label="3y")
+plt.plot(cashOIS_5y.index, cashOIS_5y, marker='', color='red', linewidth=2, label="5y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('UK Cash vs OIS, bps')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig()
+plt.show()
+
+***Gilts vs Bunds***
+
+# MULTIPLE LINE PLOTS
+plt.plot(giltbund_2y.index, giltbund_2y,marker='', color='blue', linewidth=2, label="2y")
+plt.plot(giltbund_3y.index, giltbund_3y, marker='', color='olive', linewidth=2, label="3y")
+plt.plot(giltbund_5y.index, giltbund_5y, marker='', color='red', linewidth=2, label="5y")
+plt.plot(giltbund_7y.index, giltbund_7y,marker='', color='orange', linewidth=2, label="7y")
+plt.plot(giltbund_10y.index, giltbund_10y, marker='', color='purple', linewidth=2, label="10y")
+plt.plot(giltbund_20y.index, giltbund_20y, marker='', color='pink', linewidth=2, label="20y")
+plt.plot(giltbund_30y.index, giltbund_30y, marker='', color='black', linewidth=2, label="30y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('Gilts vs Bunds, bps')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig()
+plt.show()
+
+giltbundcurve_vis = pd.concat([giltbundcurve_today, giltbundcurve_1m, giltbundcurve_2m], axis=1)
+giltbundcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+giltbundcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='Gilts vs Bunds Curve, bps')
+pdf.savefig()
+
+pdf.close()
