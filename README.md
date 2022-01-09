@@ -18,7 +18,7 @@ ek.set_app_key('')
 ```
 ## Step 1: Read in Data
 Here are examples of different datasets I read.
-### UK Cash Yield Curve
+### UK Cash Bonds
 ```
 uk_2y = ek.get_timeseries('GB2YT=RR')['OPEN']
 uk_3y = ek.get_timeseries('GB3YT=RR')['OPEN']
@@ -29,7 +29,7 @@ uk_20y = ek.get_timeseries('GB20YT=RR')['OPEN']
 uk_30y = ek.get_timeseries('GB30YT=RR')['OPEN']
 uk_50y = ek.get_timeseries('GB50YT=RR')['OPEN']
 ```
-### UK Cash Yield Curve Spreads
+### UK Cash Spreads
 ```
 UK_2s5s = ek.get_timeseries('GB2GB5=RR')['CLOSE']
 UK_2s10s = ek.get_timeseries('GB2GB10=RR')['CLOSE']
@@ -39,3 +39,21 @@ UK_5s30s = ek.get_timeseries('GB5GB30=RR')['CLOSE']
 UK_10s30s = ek.get_timeseries('GB10GB30=RR')['CLOSE']
 ```
 ## Step 2: Clean and Manipulate Data
+### UK Cash Bonds
+```
+# CONSTRUCT YIELD CURVE
+# CREATE DATAFRAME FOR YIELD CURVE
+UK_yieldcurve = pd.DataFrame([uk_2y, uk_3y, uk_5y, uk_10y, uk_20y, uk_30y, uk_50y]).transpose()
+
+# RENAME COLUMNS
+UK_yieldcurve.columns = ['2y', '3y', '5y', '10y', '20y', '30y', '50y']
+
+UK_yieldcurve = UK_yieldcurve.fillna(method='ffill')
+
+
+# GET HISTORICAL YIELD CURVE
+yieldcurve_today = UK_yieldcurve.tail(1).transpose()
+yieldcurve_1w = UK_yieldcurve.tail(5).head(1).transpose()
+yieldcurve_1m = UK_yieldcurve.tail(20).head(1).transpose()
+yieldcurve_2m = UK_yieldcurve.tail(40).head(1).transpose()
+```
