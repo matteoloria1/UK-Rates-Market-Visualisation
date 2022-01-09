@@ -57,3 +57,18 @@ yieldcurve_1w = UK_yieldcurve.tail(5).head(1).transpose()
 yieldcurve_1m = UK_yieldcurve.tail(20).head(1).transpose()
 yieldcurve_2m = UK_yieldcurve.tail(40).head(1).transpose()
 ```
+## Step 3: Set up PDF (to save the visualisation in a document)
+```
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import seaborn as sns
+```
+```
+pdf = PdfPages('UK Rates Visualisation')
+firstPage = plt.figure(figsize=(6,4))
+firstPage.clf()
+txt = "UK Market: " + str(date.today())
+firstPage.text(0.5,0.5,txt, transform=firstPage.transFigure, size=24, ha="center")
+pdf.savefig()
+```
+
