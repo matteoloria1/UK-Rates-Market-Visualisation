@@ -27,3 +27,12 @@ uk_20y = ek.get_timeseries('GB20YT=RR')['OPEN']
 uk_30y = ek.get_timeseries('GB30YT=RR')['OPEN']
 uk_50y = ek.get_timeseries('GB50YT=RR')['OPEN']
 ```
+### UK Cash Yield Curve Spreads
+```
+UK_2s5s = ek.get_timeseries('GB2GB5=RR')['CLOSE']
+UK_2s10s = ek.get_timeseries('GB2GB10=RR')['CLOSE']
+UK_2s30s = ek.get_timeseries('GB2GB30=RR')['CLOSE']
+UK_5s10s = ek.get_timeseries('GB5GB10=RR')['CLOSE']
+UK_5s30s = ek.get_timeseries('GB5GB30=RR')['CLOSE']
+UK_10s30s = ek.get_timeseries('GB10GB30=RR')['CLOSE']
+```
