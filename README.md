@@ -14,7 +14,7 @@ from datetime import date
 ```
 ek.set_app_key('')
 ```
-## Read in Data
+## Step 1: Read in Data
 Here are examples of different datasets I read.
 ### UK Cash Yield Curve
 ```
@@ -36,3 +36,4 @@ UK_5s10s = ek.get_timeseries('GB5GB10=RR')['CLOSE']
 UK_5s30s = ek.get_timeseries('GB5GB30=RR')['CLOSE']
 UK_10s30s = ek.get_timeseries('GB10GB30=RR')['CLOSE']
 ```
+## Step 2: Clean and Manipulate Data
