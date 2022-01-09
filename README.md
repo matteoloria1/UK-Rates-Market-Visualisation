@@ -12,7 +12,7 @@ import numpy as np
 from datetime import datetime
 from datetime import date
 ```
-## Access API
+## Access Refinitiv Eikon API
 ```
 ek.set_app_key('')
 ```
