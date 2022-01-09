@@ -3,8 +3,10 @@ The aim of this code is to visualise the UK interest rate markets. After visuali
 In the future, I hope to apply this visualisation code to EGBs and delve deeper into the Rates markets.
 
 ##Import Libraries
+'''
 import eikon as ek
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from datetime import date
+'''
