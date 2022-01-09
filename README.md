@@ -10,3 +10,20 @@ import numpy as np
 from datetime import datetime
 from datetime import date
 ```
+## Access API
+```
+ek.set_app_key('')
+```
+## Read in Data
+Here are examples of different datasets I read.
+### UK Cash Yield Curve
+```
+uk_2y = ek.get_timeseries('GB2YT=RR')['OPEN']
+uk_3y = ek.get_timeseries('GB3YT=RR')['OPEN']
+uk_5y = ek.get_timeseries('GB5YT=RR')['OPEN']
+uk_7y = ek.get_timeseries('GB7YT=RR')['OPEN']
+uk_10y = ek.get_timeseries('GB10YT=RR')['OPEN']
+uk_20y = ek.get_timeseries('GB20YT=RR')['OPEN']
+uk_30y = ek.get_timeseries('GB30YT=RR')['OPEN']
+uk_50y = ek.get_timeseries('GB50YT=RR')['OPEN']
+```
