@@ -82,6 +82,8 @@ yieldcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago'
         ,title='UK Nominal Yield Curve, %')
 pdf.savefig(dpi=300, bbox_inches='tight')
 ```
+![Screenshot 2022-01-09 at 22 23 17](https://user-images.githubusercontent.com/92649463/148703570-a95e5197-1460-4c76-a8f6-0019171c458b.png)
+
 ```
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -113,6 +115,8 @@ plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
 pdf.savefig(dpi=300, bbox_inches='tight')
 ```
+![Screenshot 2022-01-09 at 22 23 36](https://user-images.githubusercontent.com/92649463/148703602-8ae2d3fc-0bbb-451d-99b2-32a8b480c09c.png)
+
 ### Cash Spreads
 ```
 # MULTIPLE LINE PLOTS
@@ -133,6 +137,8 @@ plt.xticks(rotation=30)
 pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 ```
+![Screenshot 2022-01-09 at 22 23 58](https://user-images.githubusercontent.com/92649463/148703631-3192f857-8433-46f5-997f-f71a3ee2e160.png)
+
 ### Cash Yield Curve Z-Score Matrix
 ```
 #COMPOSING MATRIX
@@ -178,6 +184,8 @@ ax.set_title('UK Cash 1 Month Rolling IsJs Spread Z-Score')
 
 pdf.savefig(dpi=300, bbox_inches='tight')
 ```
+![Screenshot 2022-01-09 at 22 24 18](https://user-images.githubusercontent.com/92649463/148703645-05fda272-ff83-4e48-951a-fb46654da8e6.png)
+
 ## Step 5: Z-Score Visualisation
 ```
 import scipy.stats as stats
@@ -205,3 +213,4 @@ plt.xticks(rotation=30)
 pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 ```
+![Screenshot 2022-01-09 at 22 24 42](https://user-images.githubusercontent.com/92649463/148703666-2ab54b2c-2528-48ab-b0d7-77c5d0cab815.png)
