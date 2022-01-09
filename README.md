@@ -140,6 +140,7 @@ plt.show()
 ![Screenshot 2022-01-09 at 22 23 58](https://user-images.githubusercontent.com/92649463/148703631-3192f857-8433-46f5-997f-f71a3ee2e160.png)
 
 ### Cash Yield Curve Z-Score Matrix
+Quick note: we ignore the left-side of the diagonal. We only want to know the values to the right of the diagonal.
 ```
 #COMPOSING MATRIX
 tenors = [2,3,5,10,20,30,50]
