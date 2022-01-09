@@ -3,14 +3,11 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from datetime import date
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-import seaborn as sns
 
 # Access Eikon API
 
 # LINK TO API
-ek.set_app_key('')
+ek.set_app_key('*******')
 
 # Read in Data
 
@@ -111,12 +108,6 @@ IRS_10y = ek.get_timeseries('GBPSB6L10Y=TWEB')['CLOSE']
 IRS_20y = ek.get_timeseries('GBPSB6L20Y=TWEB')['CLOSE']
 IRS_30y = ek.get_timeseries('GBPSB6L30Y=TWEB')['CLOSE']
 
-***UK Govvies vs USTs and Bunds***
-
-
-
-
-
 ***UK IRS Curve Spreads + Flies***
 
 
@@ -125,17 +116,11 @@ IRS_30y = ek.get_timeseries('GBPSB6L30Y=TWEB')['CLOSE']
 
 ***UK Carry & Rolldown***
 
-
+ek.get_timeseries('GB2YT3M=CRD').tail()
 
 
 
 ***UK STIR Futures***
-
-
-
-
-
-***UK Asset Swap Spreads + Swap Spreads (including Linkers)***
 
 
 
@@ -157,6 +142,16 @@ ger_10y = ek.get_timeseries('DE10YT=RR')['OPEN']
 ger_20y = ek.get_timeseries('DE20YT=RR')['OPEN']
 ger_30y = ek.get_timeseries('DE30YT=RR')['OPEN']
 
+***USTs***
+
+us_2y = ek.get_timeseries('US2YT=TWEB')['OPEN']
+us_3y = ek.get_timeseries('US3YT=TWEB')['OPEN']
+us_5y = ek.get_timeseries('US5YT=TWEB')['OPEN']
+us_7y = ek.get_timeseries('US7YT=TWEB')['OPEN']
+us_10y = ek.get_timeseries('US10YT=TWEB')['OPEN']
+us_20y = ek.get_timeseries('US20YT=TWEB')['OPEN']
+us_30y = ek.get_timeseries('US30YT=TWEB')['OPEN']
+
 ***Gilts vs Bunds Spread***
 
 giltbund_2y = pd.DataFrame((uk_2y - ger_2y)*100)
@@ -166,6 +161,16 @@ giltbund_7y = pd.DataFrame((uk_7y - ger_7y)*100)
 giltbund_10y = pd.DataFrame((uk_10y - ger_10y)*100)
 giltbund_20y = pd.DataFrame((uk_20y - ger_20y)*100)
 giltbund_30y = pd.DataFrame((uk_30y - ger_30y)*100)
+
+***Gilt vs UST Spread***
+
+giltust_2y = pd.DataFrame((us_2y - uk_2y)*100)
+giltust_3y = pd.DataFrame((us_3y - uk_3y)*100)
+giltust_5y = pd.DataFrame((us_5y - uk_5y)*100)
+giltust_7y = pd.DataFrame((us_7y - uk_7y)*100)
+giltust_10y = pd.DataFrame((us_10y - uk_10y)*100)
+giltust_20y = pd.DataFrame((us_20y - uk_20y)*100)
+giltust_30y = pd.DataFrame((us_30y - uk_30y)*100)
 
 # Clean/Manipulate Data
 
@@ -340,7 +345,29 @@ giltbundcurve_1w = giltbundcurve.tail(5).head(1).transpose()
 giltbundcurve_1m = giltbundcurve.tail(20).head(1).transpose()
 giltbundcurve_2m = giltbundcurve.tail(40).head(1).transpose()
 
+***Construct Gilts vs USTs curve Dataframe***
+
+giltustcurve = pd.DataFrame([giltust_2y['OPEN'], giltust_3y['OPEN'], giltust_5y['OPEN'], giltust_7y['OPEN'], giltust_10y['OPEN'], giltust_20y['OPEN'], giltust_30y['OPEN']]).transpose()
+
+# RENAME COLUMNS
+giltustcurve.columns = ['2y', '3y', '5y', '7y', '10y', '20y', '30y']
+
+giltustcurve = giltustcurve.fillna(method='ffill')
+
+#giltustcurve.tail()
+
+***Historical Gilts vs USTs***
+
+giltustcurve_today = giltustcurve.tail(1).transpose()
+giltustcurve_1w = giltustcurve.tail(5).head(1).transpose()
+giltustcurve_1m = giltustcurve.tail(20).head(1).transpose()
+giltustcurve_2m = giltustcurve.tail(40).head(1).transpose()
+
 # PDF Visualisation
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import seaborn as sns
 
 ***Set up PDF***
 
@@ -360,7 +387,7 @@ yieldcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 yieldcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK Nominal Yield Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -390,7 +417,7 @@ plt.title("1 Week vs 1 Month Yield Curve Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***UK RPI Swap Curve***
 
@@ -399,7 +426,7 @@ infswapcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 infswapcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK Inflation Swap Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -429,7 +456,7 @@ plt.title("1 Week vs 1 Month RPI Swap Curve Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***Inflation Breakevens Curve***
 
@@ -438,7 +465,7 @@ breakscurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 breakscurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK Inflation Breakevens Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -468,7 +495,7 @@ plt.title("1 Week vs 1 Month Breakevens Curve Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***UK Linker Curve***
 
@@ -477,7 +504,7 @@ linkercurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 linkercurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK Inflation-linked Bonds Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -507,7 +534,7 @@ plt.title("1 Week vs 1 Month Linker Curve Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***Forward Inflation Swaps Scatter***
 
@@ -516,7 +543,7 @@ forwardinfswap_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 forwardinfswap_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK Forward Inflation Swaps, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -546,7 +573,7 @@ plt.title("1 Week vs 1 Month Forward Inflation Swaps Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***MPC OIS Fixings***
 
@@ -563,7 +590,7 @@ plt.title('MPC OIS Fixings')
 plt.xticks(rotation=30)
 
 # SHOW GRAPH
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 
 # MPC FIXINGS CURVE
@@ -572,7 +599,7 @@ MPCfixings_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 MPCfixings_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK MPC OIS Fixings, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -602,7 +629,7 @@ plt.title("1 Week vs 1 Month Forward Inflation Swaps Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***UK IRS Curve***
 
@@ -611,7 +638,7 @@ IRScurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 IRScurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK Swaps Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -641,7 +668,7 @@ plt.title("1 Week vs 1 Month Swaps Curve Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***UK Cash Curve + IRS Curve on same chart***
 
@@ -650,7 +677,7 @@ cashvsIRS_vis.columns = ['Swaps', 'Cash']
 
 cashvsIRS_vis.plot(style={'Swaps': 'ro-', 'Cash': 'bo-'}
         ,title='UK Swaps vs Cash Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***OIS Curve***
 
@@ -659,7 +686,7 @@ OIScurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 OIScurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='UK OIS Curve, %')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 # BAR CHART OF ABSOLUTE CHANGES
 
@@ -689,7 +716,7 @@ plt.title("1 Week vs 1 Month OIS Curve Change (bps)")
 plt.xticks(rotation=30)
 plt.bar(y_pos, df_week_ago['Change (bps)'])
 plt.plot()
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***UK Cash Z-score Matrices***
 
@@ -734,7 +761,7 @@ ax.set_xlabel("Tenor (J)")
 ax.set_ylabel("Tenor (I)")
 ax.set_title('UK Cash 1 Month Rolling IsJs Spread Z-Score')
 
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 for i in tenors: 
     for j in tenors: 
@@ -768,7 +795,7 @@ ax.set_xlabel("Tenor (J)")
 ax.set_ylabel("Tenor (I)")
 ax.set_title('UK Cash 7 Days Rolling IsJs Spread Z-Score')
 
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***Swaps Z-score Matrices***
 
@@ -811,7 +838,7 @@ ax.set_xlabel("Tenor (J)")
 ax.set_ylabel("Tenor (I)")
 ax.set_title('UK IRS 1 Month Rolling IsJs Spread Z-Score')
 
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 for i in tenors: 
     for j in tenors: 
@@ -845,7 +872,7 @@ ax.set_xlabel("Tenor (J)")
 ax.set_ylabel("Tenor (I)")
 ax.set_title('UK IRS 7 Days Rolling IsJs Spread Z-Score')
 
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 
 ***Cash Curve Spreads***
 
@@ -864,7 +891,7 @@ plt.title('UK Cash Curve Spreads, bps')
 plt.xticks(rotation=30)
 
 # SHOW GRAPH
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 
 ***Cash Flies***
@@ -882,7 +909,7 @@ plt.title('UK Cash Curve Flies, bps')
 plt.xticks(rotation=30)
 
 # SHOW GRAPH
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 
 ***Cash vs OIS***
@@ -899,7 +926,7 @@ plt.title('UK Cash vs OIS, bps')
 plt.xticks(rotation=30)
 
 # SHOW GRAPH
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 
 ***Gilts vs Bunds***
@@ -920,7 +947,7 @@ plt.title('Gilts vs Bunds, bps')
 plt.xticks(rotation=30)
 
 # SHOW GRAPH
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
 plt.show()
 
 giltbundcurve_vis = pd.concat([giltbundcurve_today, giltbundcurve_1m, giltbundcurve_2m], axis=1)
@@ -928,6 +955,162 @@ giltbundcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
 
 giltbundcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
         ,title='Gilts vs Bunds Curve, bps')
-pdf.savefig()
+pdf.savefig(dpi=300, bbox_inches='tight')
+
+***Gilts vs USTs***
+
+# MULTIPLE LINE PLOTS
+plt.plot(giltust_2y.index, giltust_2y,marker='', color='blue', linewidth=2, label="2y")
+plt.plot(giltust_3y.index, giltust_3y, marker='', color='olive', linewidth=2, label="3y")
+plt.plot(giltust_5y.index, giltust_5y, marker='', color='red', linewidth=2, label="5y")
+plt.plot(giltust_7y.index, giltust_7y,marker='', color='orange', linewidth=2, label="7y")
+plt.plot(giltust_10y.index, giltust_10y, marker='', color='purple', linewidth=2, label="10y")
+plt.plot(giltust_20y.index, giltust_20y, marker='', color='pink', linewidth=2, label="20y")
+plt.plot(giltust_30y.index, giltust_30y, marker='', color='black', linewidth=2, label="30y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('Gilts vs USTs, bps')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig(dpi=300, bbox_inches='tight')
+plt.show()
+
+giltustcurve_vis = pd.concat([giltustcurve_today, giltustcurve_1m, giltustcurve_2m], axis=1)
+giltustcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
+
+giltustcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
+        ,title='Gilts vs USTs Curve, bps')
+pdf.savefig(dpi=300, bbox_inches='tight')
+
+# Z Score Analysis
+
+import scipy.stats as stats
+
+***Gilts vs Bunds***
+
+giltbunds_zscore = giltbundcurve.apply(stats.zscore)
+
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['2y'],marker='', color='blue', linewidth=2, label="2y")
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['3y'],marker='', color='orange', linewidth=2, label="3y")
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['5y'],marker='', color='purple', linewidth=2, label="5y")
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['7y'],marker='', color='yellow', linewidth=2, label="7y")
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['10y'],marker='', color='pink', linewidth=2, label="10y")
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['20y'],marker='', color='green', linewidth=2, label="20y")
+plt.plot(giltbunds_zscore.index, giltbunds_zscore['30y'],marker='', color='black', linewidth=2, label="30y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('Gilts vs Bunds Z-score')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig(dpi=300, bbox_inches='tight')
+plt.show()
+
+***Gilts vs USTs***
+
+giltust_zscore = giltustcurve.apply(stats.zscore)
+
+plt.plot(giltust_zscore.index, giltust_zscore['2y'],marker='', color='blue', linewidth=2, label="2y")
+plt.plot(giltust_zscore.index, giltust_zscore['3y'],marker='', color='orange', linewidth=2, label="3y")
+plt.plot(giltust_zscore.index, giltust_zscore['5y'],marker='', color='purple', linewidth=2, label="5y")
+plt.plot(giltust_zscore.index, giltust_zscore['7y'],marker='', color='yellow', linewidth=2, label="7y")
+plt.plot(giltust_zscore.index, giltust_zscore['10y'],marker='', color='pink', linewidth=2, label="10y")
+plt.plot(giltust_zscore.index, giltust_zscore['20y'],marker='', color='green', linewidth=2, label="20y")
+plt.plot(giltust_zscore.index, giltust_zscore['30y'],marker='', color='black', linewidth=2, label="30y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('Gilts vs USTs Z-score')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig(dpi=300, bbox_inches='tight')
+plt.show()
+
+***UK Cash Yield Curve***
+
+uk_yieldcurve_zscore = UK_yieldcurve.apply(stats.zscore)
+
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['2y'],marker='', color='blue', linewidth=2, label="2y")
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['3y'],marker='', color='orange', linewidth=2, label="3y")
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['5y'],marker='', color='purple', linewidth=2, label="5y")
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['10y'],marker='', color='pink', linewidth=2, label="10y")
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['20y'],marker='', color='green', linewidth=2, label="20y")
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['30y'],marker='', color='black', linewidth=2, label="30y")
+plt.plot(uk_yieldcurve_zscore.index, uk_yieldcurve_zscore['50y'],marker='', color='pink', linewidth=2, label="50y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('Gilts Z-score')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig(dpi=300, bbox_inches='tight')
+plt.show()
+
+***Inflation Swaps***
+
+uk_ZCIScurve_zscore = UK_ZCIScurve.apply(stats.zscore)
+
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['1y'],marker='', color='blue', linewidth=2, label="1y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['2y'],marker='', color='orange', linewidth=2, label="2y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['3y'],marker='', color='purple', linewidth=2, label="3y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['5y'],marker='', color='pink', linewidth=2, label="5y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['7y'],marker='', color='green', linewidth=2, label="7y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['10y'],marker='', color='black', linewidth=2, label="10y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['15y'],marker='', color='pink', linewidth=2, label="15y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['20y'],marker='', color='brown', linewidth=2, label="20y")
+plt.plot(uk_ZCIScurve_zscore.index, uk_ZCIScurve_zscore['30y'],marker='', color='grey', linewidth=2, label="30y")
+
+
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('UK RPI Swap Z-score')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig(dpi=300, bbox_inches='tight')
+plt.show()
+
+
+
+
+
+
+
+***UK OIS***
+
+uk_OIScurve_zscore = UK_OIScurve.apply(stats.zscore)
+
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['1m'],marker='', color='blue', linewidth=2, label="1m")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['2m'],marker='', color='orange', linewidth=2, label="2m")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['3m'],marker='', color='purple', linewidth=2, label="3m")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['6m'],marker='', color='pink', linewidth=2, label="6m")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['9m'],marker='', color='green', linewidth=2, label="9m")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['1y'],marker='', color='black', linewidth=2, label="1y")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['18m'],marker='', color='pink', linewidth=2, label="18m")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['2y'],marker='', color='brown', linewidth=2, label="2y")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['3y'],marker='', color='grey', linewidth=2, label="3y")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['4y'],marker='', color='aqua', linewidth=2, label="4y")
+plt.plot(uk_OIScurve_zscore.index, uk_OIScurve_zscore['5y'],marker='', color='darkkhaki', linewidth=2, label="5y")
+
+# SHOW LEGEND
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+plt.title('UK OIS Curve Z-score')
+plt.xticks(rotation=30)
+
+# SHOW GRAPH
+pdf.savefig(dpi=300, bbox_inches='tight')
+plt.show()
 
 pdf.close()
