@@ -7,139 +7,16 @@ This file will only show certain snippets of the code. Full code is in the "Code
 The final PDF looks like this:
 [UK Rates Visualisation.pdf](https://github.com/matteoloria1/UK-Rates-Market-Visualisation/files/7882805/UK.Rates.Visualisation.PDF.pdf)
 
-## Import Libraries
-```
-import eikon as ek
-import pandas as pd
-import numpy as np
-from datetime import datetime
-from datetime import date
-```
-## Access Refinitiv Eikon API
-```
-ek.set_app_key('')
-```
-## Step 1: Read in Data
-Here are examples of different datasets I read.
-### UK Cash Bonds
-```
-uk_2y = ek.get_timeseries('GB2YT=RR')['OPEN']
-uk_3y = ek.get_timeseries('GB3YT=RR')['OPEN']
-uk_5y = ek.get_timeseries('GB5YT=RR')['OPEN']
-uk_7y = ek.get_timeseries('GB7YT=RR')['OPEN']
-uk_10y = ek.get_timeseries('GB10YT=RR')['OPEN']
-uk_20y = ek.get_timeseries('GB20YT=RR')['OPEN']
-uk_30y = ek.get_timeseries('GB30YT=RR')['OPEN']
-uk_50y = ek.get_timeseries('GB50YT=RR')['OPEN']
-```
-### UK Cash Spreads
-```
-UK_2s5s = ek.get_timeseries('GB2GB5=RR')['CLOSE']
-UK_2s10s = ek.get_timeseries('GB2GB10=RR')['CLOSE']
-UK_2s30s = ek.get_timeseries('GB2GB30=RR')['CLOSE']
-UK_5s10s = ek.get_timeseries('GB5GB10=RR')['CLOSE']
-UK_5s30s = ek.get_timeseries('GB5GB30=RR')['CLOSE']
-UK_10s30s = ek.get_timeseries('GB10GB30=RR')['CLOSE']
-```
-## Step 2: Clean and Manipulate Data
-### UK Cash Bonds
-```
-# CONSTRUCT YIELD CURVE
-# CREATE DATAFRAME FOR YIELD CURVE
-UK_yieldcurve = pd.DataFrame([uk_2y, uk_3y, uk_5y, uk_10y, uk_20y, uk_30y, uk_50y]).transpose()
-
-# RENAME COLUMNS
-UK_yieldcurve.columns = ['2y', '3y', '5y', '10y', '20y', '30y', '50y']
-
-UK_yieldcurve = UK_yieldcurve.fillna(method='ffill')
-
-
-# GET HISTORICAL YIELD CURVE
-yieldcurve_today = UK_yieldcurve.tail(1).transpose()
-yieldcurve_1w = UK_yieldcurve.tail(5).head(1).transpose()
-yieldcurve_1m = UK_yieldcurve.tail(20).head(1).transpose()
-yieldcurve_2m = UK_yieldcurve.tail(40).head(1).transpose()
-```
-## Step 3: Set up PDF (to save the visualisation in a document)
-```
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-import seaborn as sns
-sns.set()
-```
-```
-pdf = PdfPages('UK Rates Visualisation')
-firstPage = plt.figure(figsize=(6,4))
-firstPage.clf()
-txt = "UK Market: " + str(date.today())
-firstPage.text(0.5,0.5,txt, transform=firstPage.transFigure, size=24, ha="center")
-pdf.savefig()
-```
-## Step 4: Visualise Data
 ### Cash Yield Curve
-```
-yieldcurve_vis = pd.concat([yieldcurve_today, yieldcurve_1m, yieldcurve_2m], axis=1)
-yieldcurve_vis.columns = ['Today', '1 month ago', '2 months ago']
-
-yieldcurve_vis.plot(style={'Today': 'ro-', '1 month ago': 'bx--', '2 months ago': 'g*:'}
-        ,title='UK Nominal Yield Curve, %')
-pdf.savefig(dpi=300, bbox_inches='tight')
 ```
 ![Screenshot 2022-01-09 at 22 23 17](https://user-images.githubusercontent.com/92649463/148703570-a95e5197-1460-4c76-a8f6-0019171c458b.png)
 
 ```
 # BAR CHART OF ABSOLUTE CHANGES
-
-# 1M CHANGE
-yieldcurve_vis['Change (bps)'] = (yieldcurve_vis.iloc[:,0] - yieldcurve_vis.iloc[:,1]) * 100
-indexNamesArr = yieldcurve_vis.index.values
-listOfRowIndexLabels = list(indexNamesArr)
-y_pos = np.arange(len(listOfRowIndexLabels))
-plt.xticks(y_pos, listOfRowIndexLabels)
-plt.xlabel("Maturity")
-plt.ylabel("Change (bps)")
-plt.title("1 Month Yield Curve Change (bps)")
-plt.xticks(rotation=30)
-plt.bar(y_pos, yieldcurve_vis['Change (bps)'])
-plt.plot()
-
-# 1W CHANGE
-df_week_ago = pd.concat([yieldcurve_today, yieldcurve_1w], axis=1)
-df_week_ago['Change (bps)'] = (df_week_ago.iloc[:,0] - df_week_ago.iloc[:,1]) * 100
-indexNamesArr = df_week_ago.index.values
-listOfRowIndexLabels = list(indexNamesArr)
-y_pos = np.arange(len(listOfRowIndexLabels))
-plt.xticks(y_pos, listOfRowIndexLabels)
-plt.xlabel("Maturity")
-plt.ylabel("Change (bps)")
-plt.title("1 Week vs 1 Month Yield Curve Change (bps)")
-plt.xticks(rotation=30)
-plt.bar(y_pos, df_week_ago['Change (bps)'])
-plt.plot()
-pdf.savefig(dpi=300, bbox_inches='tight')
 ```
 ![Screenshot 2022-01-09 at 22 23 36](https://user-images.githubusercontent.com/92649463/148703602-8ae2d3fc-0bbb-451d-99b2-32a8b480c09c.png)
 
 ### Cash Spreads
-```
-# MULTIPLE LINE PLOTS
-plt.plot(UK_2s5s.index, UK_2s5s,marker='', color='blue', linewidth=2, label="2s5s")
-plt.plot(UK_2s10s.index, UK_2s10s, marker='', color='olive', linewidth=2, label="2s10s")
-plt.plot(UK_2s30s.index, UK_2s30s, marker='', color='red', linewidth=2, label="2s30s")
-plt.plot(UK_5s10s.index, UK_5s10s, marker='', color='orange', linewidth=2, label="5s10s")
-plt.plot(UK_5s30s.index, UK_5s30s, marker='', color='yellow', linewidth=2, label="5s30s")
-plt.plot(UK_10s30s.index, UK_10s30s, marker='', color='black', linewidth=2, label="10s30s")
-
-# SHOW LEGEND
-plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-plt.title('UK Cash Curve Spreads, bps')
-plt.xticks(rotation=30)
-
-# SHOW GRAPH
-pdf.savefig(dpi=300, bbox_inches='tight')
-plt.show()
-```
 ![Screenshot 2022-01-09 at 22 23 58](https://user-images.githubusercontent.com/92649463/148703631-3192f857-8433-46f5-997f-f71a3ee2e160.png)
 
 ### Cash Yield Curve Z-Score Matrix
